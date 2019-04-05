@@ -59,7 +59,7 @@ featurePlot(x, y, plot = "scatter", labels = c("","Y"),
             type = c("p"), layout = c(4, 2))
 
 ```
-We can see that there may be a non-linear relationship between house price and distance to MRT station, and between house price and house age. We will test both of these terms as spline terms in a GAM model.
+We can see that there may be a non-linear relationship between house price and distance to MRT station, and between house price and house age. We will test both of these terms independently and together as spline terms in GAM models.
 
 ###GAM models
 ```{r}
@@ -71,7 +71,15 @@ gam.m2 <- gam(house_price ~ transaction_date + house_age + s(distance_mrt) + con
 gam.m3 <- gam(house_price ~ transaction_date + s(house_age) + distance_mrt + conv_stores + latitude + longitude, data = re_data)
 #spline term applied to house age
 
-anova(gam.m1, gam.m2, gam.m3, test = "F")
+gam.m4 <- gam(house_price ~ transaction_date + s(house_age) + s(distance_mrt) + conv_stores + latitude + longitude, data = re_data)
+#Both house age and distance to mrt station are splined
+
+anova(gam.m1, gam.m2, gam.m3, gam.m4, test = "F")
+
+summary(gam.m2)
+summary(gam.m3)
+summary(gam.m4)
+#GAM M4 has best R^2 value
 
 plot(gam.m2)
 plot(gam.m3)
@@ -104,7 +112,7 @@ knn_fit
 
 # Plot model error RMSE vs different values of k
 ggplot(knn_fit)
-# Best tuning parameter k that minimize the RMSE
+# Best tuning parameter k that minimizes the RMSE
 knn_fit$bestTune
 # Make predictions on the test data
 knn_predict <- knn_fit %>% predict(testing)
