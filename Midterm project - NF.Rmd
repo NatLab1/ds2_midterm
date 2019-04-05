@@ -75,6 +75,7 @@ anova(gam.m1, gam.m2, gam.m3, test = "F")
 
 plot(gam.m2)
 plot(gam.m3)
+
 ```  
 
 ###K-Nearest Neighbors fit
@@ -101,9 +102,14 @@ knn_fit <- train(house_price ~., data = training, method = "knn",
             tuneLength = 10)
 knn_fit
 
+# Plot model error RMSE vs different values of k
 ggplot(knn_fit)
-
-knn_predict <- predict(knn_fit, newdata = testing)
+# Best tuning parameter k that minimize the RMSE
+knn_fit$bestTune
+# Make predictions on the test data
+knn_predict <- knn_fit %>% predict(testing)
+# Compute the prediction error RMSE
+RMSE(knn_predict, testing$house_price)
 
 
 ```
