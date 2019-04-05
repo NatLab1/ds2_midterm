@@ -13,12 +13,15 @@ library(readxl)
 library(caret)
 library(splines)
 library(mgcv)
+library(ISLR)
 
-re_data = read_excel("real_estate_valuation_data_set.xlsx") %>%
-  janitor::clean_names()
 ```
 
+###Import & tidy dataset
 ```{r}
+re_data = read_excel("real_estate_valuation_data_set.xlsx") %>%
+  janitor::clean_names()
+
 re_data =
   re_data %>%
   rename(house_price = y_house_price_of_unit_area)
@@ -33,8 +36,11 @@ re_data =
          longitude = x6_longitude
          )
 #renamed variables
+
+summary(re_data)
 ```
 
+###Scatter Plot
 ```{r}
 data(re_data)
 # matrix of predictors 
@@ -55,7 +61,7 @@ featurePlot(x, y, plot = "scatter", labels = c("","Y"),
 ```
 We can see that there may be a non-linear relationship between house price and distance to MRT station, and between house price and house age. We will test both of these terms as spline terms in a GAM model.
 
-
+###GAM models
 ```{r}
 gam.m1 <- gam(house_price ~ transaction_date + house_age + distance_mrt + conv_stores + latitude + longitude, data = re_data)
 
@@ -70,7 +76,36 @@ anova(gam.m1, gam.m2, gam.m3, test = "F")
 plot(gam.m2)
 plot(gam.m3)
 ```  
-```
 
+###K-Nearest Neighbors fit
+```{r}
+set.seed(123)
+#Spliting data as training and test set. Using createDataPartition() function from caret
+indxTrain <- createDataPartition(y = re_data$house_price, p = 0.80, list = FALSE)
+training <- re_data[indxTrain,]
+testing <- re_data[-indxTrain,]
+
+dim(training); dim(testing);
+#train: 332, 8
+#test: 82, 8
+
+trainX <- training[,names(training) != "house_price"]
+preProcValues <- preProcess(x = trainX,method = c("center", "scale"))
+preProcValues
+
+set.seed(1)
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 5)
+knn_fit <- train(house_price ~., data = training, method = "knn",
+            trControl = trctrl,
+            preProcess = c("center", "scale"),
+            tuneLength = 10)
+knn_fit
+
+ggplot(knn_fit)
+
+knn_predict <- predict(knn_fit, newdata = testing)
+
+
+```
 
 
