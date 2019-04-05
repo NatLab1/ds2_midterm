@@ -1,0 +1,76 @@
+---
+title: "Midterm project - Nathalie"
+author: "Nathalie Fadel"
+date: "4/4/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readxl)
+library(caret)
+library(splines)
+library(mgcv)
+
+re_data = read_excel("real_estate_valuation_data_set.xlsx") %>%
+  janitor::clean_names()
+```
+
+```{r}
+re_data =
+  re_data %>%
+  rename(house_price = y_house_price_of_unit_area)
+
+re_data = 
+  re_data %>%
+  rename(transaction_date = x1_transaction_date,
+         house_age = x2_house_age,
+         distance_mrt = x3_distance_to_the_nearest_mrt_station,
+         conv_stores = x4_number_of_convenience_stores,
+         latitude = x5_latitude,
+         longitude = x6_longitude
+         )
+#renamed variables
+```
+
+```{r}
+data(re_data)
+# matrix of predictors 
+x <- model.matrix(house_price~.,re_data)[,-1]
+# vector of response
+y <- re_data$house_price
+
+theme1 <- trellis.par.get()
+theme1$plot.symbol$col <- rgb(.2, .4, .2, .5)
+theme1$plot.symbol$pch <- 16
+theme1$plot.line$col <- rgb(.8, .1, .1, 1)
+theme1$plot.line$lwd <- 2
+theme1$strip.background$col <- rgb(.0, .2, .6, .2)
+trellis.par.set(theme1)
+featurePlot(x, y, plot = "scatter", labels = c("","Y"),
+            type = c("p"), layout = c(4, 2))
+
+```
+We can see that there may be a non-linear relationship between house price and distance to MRT station, and between house price and house age. We will test both of these terms as spline terms in a GAM model.
+
+
+```{r}
+gam.m1 <- gam(house_price ~ transaction_date + house_age + distance_mrt + conv_stores + latitude + longitude, data = re_data)
+
+gam.m2 <- gam(house_price ~ transaction_date + house_age + s(distance_mrt) + conv_stores + latitude + longitude, data = re_data)
+#Spline term applied to distance to mrt station
+
+gam.m3 <- gam(house_price ~ transaction_date + s(house_age) + distance_mrt + conv_stores + latitude + longitude, data = re_data)
+#spline term applied to house age
+
+anova(gam.m1, gam.m2, gam.m3, test = "F")
+
+plot(gam.m2)
+plot(gam.m3)
+```  
+```
+
+
+
