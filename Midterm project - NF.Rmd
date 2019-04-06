@@ -20,15 +20,13 @@ library(ISLR)
 ###Import & tidy dataset
 ```{r}
 re_data = read_excel("real_estate_valuation_data_set.xlsx") %>%
-  janitor::clean_names()
-
-re_data =
-  re_data %>%
-  rename(house_price = y_house_price_of_unit_area)
+  janitor::clean_names() %>%
+  select(-no)
 
 re_data = 
   re_data %>%
-  rename(transaction_date = x1_transaction_date,
+  rename(house_price = y_house_price_of_unit_area, 
+         transaction_date = x1_transaction_date,
          house_age = x2_house_age,
          distance_mrt = x3_distance_to_the_nearest_mrt_station,
          conv_stores = x4_number_of_convenience_stores,
@@ -95,8 +93,8 @@ training <- re_data[indxTrain,]
 testing <- re_data[-indxTrain,]
 
 dim(training); dim(testing);
-#train: 332, 8
-#test: 82, 8
+#train: 332, 7
+#test: 82, 7
 
 trainX <- training[,names(training) != "house_price"]
 preProcValues <- preProcess(x = trainX,method = c("center", "scale"))
