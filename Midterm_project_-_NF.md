@@ -7,15 +7,13 @@ Nathalie Fadel
 
 ``` r
 re_data = read_excel("real_estate_valuation_data_set.xlsx") %>%
-  janitor::clean_names()
-
-re_data =
-  re_data %>%
-  rename(house_price = y_house_price_of_unit_area)
+  janitor::clean_names() %>%
+  select(-no)
 
 re_data = 
   re_data %>%
-  rename(transaction_date = x1_transaction_date,
+  rename(house_price = y_house_price_of_unit_area, 
+         transaction_date = x1_transaction_date,
          house_age = x2_house_age,
          distance_mrt = x3_distance_to_the_nearest_mrt_station,
          conv_stores = x4_number_of_convenience_stores,
@@ -27,20 +25,20 @@ re_data =
 summary(re_data)
 ```
 
-    ##        no        transaction_date   house_age       distance_mrt    
-    ##  Min.   :  1.0   Min.   :2013     Min.   : 0.000   Min.   :  23.38  
-    ##  1st Qu.:104.2   1st Qu.:2013     1st Qu.: 9.025   1st Qu.: 289.32  
-    ##  Median :207.5   Median :2013     Median :16.100   Median : 492.23  
-    ##  Mean   :207.5   Mean   :2013     Mean   :17.713   Mean   :1083.89  
-    ##  3rd Qu.:310.8   3rd Qu.:2013     3rd Qu.:28.150   3rd Qu.:1454.28  
-    ##  Max.   :414.0   Max.   :2014     Max.   :43.800   Max.   :6488.02  
-    ##   conv_stores        latitude       longitude      house_price    
-    ##  Min.   : 0.000   Min.   :24.93   Min.   :121.5   Min.   :  7.60  
-    ##  1st Qu.: 1.000   1st Qu.:24.96   1st Qu.:121.5   1st Qu.: 27.70  
-    ##  Median : 4.000   Median :24.97   Median :121.5   Median : 38.45  
-    ##  Mean   : 4.094   Mean   :24.97   Mean   :121.5   Mean   : 37.98  
-    ##  3rd Qu.: 6.000   3rd Qu.:24.98   3rd Qu.:121.5   3rd Qu.: 46.60  
-    ##  Max.   :10.000   Max.   :25.01   Max.   :121.6   Max.   :117.50
+    ##  transaction_date   house_age       distance_mrt      conv_stores    
+    ##  Min.   :2013     Min.   : 0.000   Min.   :  23.38   Min.   : 0.000  
+    ##  1st Qu.:2013     1st Qu.: 9.025   1st Qu.: 289.32   1st Qu.: 1.000  
+    ##  Median :2013     Median :16.100   Median : 492.23   Median : 4.000  
+    ##  Mean   :2013     Mean   :17.713   Mean   :1083.89   Mean   : 4.094  
+    ##  3rd Qu.:2013     3rd Qu.:28.150   3rd Qu.:1454.28   3rd Qu.: 6.000  
+    ##  Max.   :2014     Max.   :43.800   Max.   :6488.02   Max.   :10.000  
+    ##     latitude       longitude      house_price    
+    ##  Min.   :24.93   Min.   :121.5   Min.   :  7.60  
+    ##  1st Qu.:24.96   1st Qu.:121.5   1st Qu.: 27.70  
+    ##  Median :24.97   Median :121.5   Median : 38.45  
+    ##  Mean   :24.97   Mean   :121.5   Mean   : 37.98  
+    ##  3rd Qu.:24.98   3rd Qu.:121.5   3rd Qu.: 46.60  
+    ##  Max.   :25.01   Max.   :121.6   Max.   :117.50
 
 ### Scatter Plot
 
@@ -226,25 +224,25 @@ testing <- re_data[-indxTrain,]
 dim(training); dim(testing);
 ```
 
-    ## [1] 332   8
+    ## [1] 332   7
 
-    ## [1] 82  8
+    ## [1] 82  7
 
 ``` r
-#train: 332, 8
-#test: 82, 8
+#train: 332, 7
+#test: 82, 7
 
 trainX <- training[,names(training) != "house_price"]
 preProcValues <- preProcess(x = trainX,method = c("center", "scale"))
 preProcValues
 ```
 
-    ## Created from 332 samples and 7 variables
+    ## Created from 332 samples and 6 variables
     ## 
     ## Pre-processing:
-    ##   - centered (7)
+    ##   - centered (6)
     ##   - ignored (0)
-    ##   - scaled (7)
+    ##   - scaled (6)
 
 ``` r
 set.seed(1)
@@ -259,27 +257,27 @@ knn_fit
     ## k-Nearest Neighbors 
     ## 
     ## 332 samples
-    ##   7 predictor
+    ##   6 predictor
     ## 
-    ## Pre-processing: centered (7), scaled (7) 
+    ## Pre-processing: centered (6), scaled (6) 
     ## Resampling: Cross-Validated (10 fold, repeated 5 times) 
     ## Summary of sample sizes: 297, 300, 299, 298, 300, 299, ... 
     ## Resampling results across tuning parameters:
     ## 
     ##   k   RMSE      Rsquared   MAE     
-    ##    5  8.625897  0.6090357  5.972026
-    ##    7  8.577464  0.6109974  5.962765
-    ##    9  8.429140  0.6215711  5.922244
-    ##   11  8.408555  0.6229765  5.928548
-    ##   13  8.387864  0.6255973  5.920188
-    ##   15  8.366504  0.6290981  5.901737
-    ##   17  8.405314  0.6273751  5.931906
-    ##   19  8.446473  0.6251579  5.964352
-    ##   21  8.491119  0.6233369  5.988519
-    ##   23  8.516109  0.6252386  6.035880
+    ##    5  8.074996  0.6578907  5.610875
+    ##    7  8.014371  0.6623392  5.562251
+    ##    9  8.113341  0.6527168  5.605927
+    ##   11  8.250377  0.6406296  5.702476
+    ##   13  8.268577  0.6387480  5.722598
+    ##   15  8.218981  0.6435400  5.732524
+    ##   17  8.248154  0.6417133  5.789684
+    ##   19  8.241602  0.6425379  5.796926
+    ##   21  8.276370  0.6405283  5.841319
+    ##   23  8.292331  0.6406226  5.850387
     ## 
     ## RMSE was used to select the optimal model using the smallest value.
-    ## The final value used for the model was k = 15.
+    ## The final value used for the model was k = 7.
 
 ``` r
 # Plot model error RMSE vs different values of k
@@ -293,8 +291,8 @@ ggplot(knn_fit)
 knn_fit$bestTune
 ```
 
-    ##    k
-    ## 6 15
+    ##   k
+    ## 2 7
 
 ``` r
 # Make predictions on the test data
@@ -303,4 +301,4 @@ knn_predict <- knn_fit %>% predict(testing)
 RMSE(knn_predict, testing$house_price)
 ```
 
-    ## [1] 7.743488
+    ## [1] 7.95371
