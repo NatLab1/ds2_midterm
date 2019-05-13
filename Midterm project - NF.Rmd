@@ -18,6 +18,7 @@ library(pastecs)
 library(knitr)
 library(rpart)
 library(rpart.plot)
+library(caTools)
 
 ```
 
@@ -131,16 +132,35 @@ RMSE(knn_predict, testing$house_price)
 ```
 
 
-#Trees
+#Regression Trees
 ```{r}
+#using caTools
+set.seed(1)
+split = sample.split(re_data$house_price, SplitRatio = 0.8)
+train = subset(re_data, split==TRUE)
+test = subset(re_data, split==FALSE)
+
 #using rpart
 set.seed(1)
-tree1 <- rpart(formula = house_price~., data = re_data,
-               subset = indxTrain, 
-               control = rpart.control(cp = 0))
+tree1 <- rpart(formula = house_price~., data = train)
 
-cpTable <- printcp(tree1)
 plotcp(tree1)
-prp(tree1)
+rpart.plot(tree1)
+cpTable <- printcp(tree1)
+
+minErr <- which.min(cpTable[,5])
+#prune tree
+tree2 <- prune(tree1, cpTable[minErr,1]) #prune based on minimum cv error
+rpart.plot(tree2)
+plotcp(tree2)
+
+tree.pred = predict(tree2, newdata = test)
+RMSE(tree.pred, test$house_price)
+
+```
+
+#Ensemble methods - random forests and boosting
+```{r}
+
 
 ```
