@@ -19,6 +19,9 @@ library(knitr)
 library(rpart)
 library(rpart.plot)
 library(caTools)
+library(randomForest)
+library(gbm)
+library(ranger)
 
 ```
 
@@ -132,7 +135,7 @@ RMSE(knn_predict, testing$house_price)
 ```
 
 
-#Regression Trees
+###Regression Trees
 ```{r}
 #using caTools
 set.seed(1)
@@ -159,8 +162,85 @@ RMSE(tree.pred, test$house_price)
 
 ```
 
-#Ensemble methods - random forests and boosting
+###Random Forests
 ```{r}
+set.seed(1)
+rf_m <- train(house_price~., data = train, method = "rf", prox = TRUE)
+print(rf_m)
+#optimal mtry value is 2
 
+set.seed(1)
+rf <- randomForest(house_price~., data = train, mtry = 2)
+print(rf)
+plot(rf)
+
+importance(rf)
+varImpPlot(rf)
+
+rf.pred <- predict(rf, newdata = test)
+RMSE(rf.pred, test$house_price)
+
+#tried to do model tuning in caret, processing took so long that the model fit stopped running.
+```
+
+###GBM boosting
+```{r}
+set.seed(1)
+gbm_fit <- train(house_price~., data = train, 
+                 method = "gbm", 
+                 verbose = FALSE)
+print(gbm_fit)
+plot(gbm_fit)
+
+gbm.pred <- predict(gbm_fit, newdata = test)
+RMSE(gbm.pred, test$house_price)
+
+#try tuning gbm
+gbm2_grid <- expand.grid(n.trees = c(2000,3000,4000),
+                        interaction.depth = 1:6,
+                        shrinkage = c(0.001,0.003,0.005),
+                        n.minobsinnode = 1)
+set.seed(1)
+gbm2_fit <- train(house_price~., data = train, 
+                 tuneGrid = gbm2_grid,
+                 trControl = trctrl,
+                 method = "gbm",
+                 verbose = FALSE)
+plot(gbm2_fit)
+
+gbm2.pred <- predict(gbm2_fit, newdata = test)
+RMSE(gbm2.pred, test$house_price)
+#don't include - RMSE was higher for tuned model
 
 ```
+
+##Variable importance
+```{r}
+set.seed(1)
+rf2.final.imp <- ranger(house_price~., train, 
+                        mtry = 2, 
+                        min.node.size = 5,
+                        importance = "impurity") 
+
+barplot(sort(ranger::importance(rf2.final.imp), decreasing = FALSE), 
+        las = 2, horiz = TRUE, cex.names = 0.7,
+        col = colorRampPalette(colors = c("cyan","blue"))(8))
+#doesn't tell us anything new that the varImp plot from randomforests already found
+
+set.seed(1)
+rf2.final.per <- ranger(house_price~., train, 
+                        mtry = 2, 
+                        min.node.size = 5,
+                        importance = "permutation",
+                        scale.permutation.importance = TRUE) 
+
+barplot(sort(ranger::importance(rf2.final.per), decreasing = FALSE), 
+        las = 2, horiz = TRUE, cex.names = 0.7,
+        col = colorRampPalette(colors = c("cyan","blue"))(8))
+
+summary(gbm_fit$finalModel, las = 2, cBars = 19, cex.names = 0.6)
+#relative influence of predictors in GBM model
+```
+
+
+
