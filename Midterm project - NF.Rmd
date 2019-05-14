@@ -2,7 +2,7 @@
 title: "Midterm project - Nathalie"
 author: "Nathalie Fadel"
 date: "4/4/2019"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -153,6 +153,7 @@ cpTable <- printcp(tree1)
 
 minErr <- which.min(cpTable[,5])
 #prune tree
+set.seed(1)
 tree2 <- prune(tree1, cpTable[minErr,1]) #prune based on minimum cv error
 rpart.plot(tree2)
 plotcp(tree2)
@@ -173,8 +174,6 @@ set.seed(1)
 rf <- randomForest(house_price~., data = train, mtry = 2)
 print(rf)
 plot(rf)
-
-importance(rf)
 varImpPlot(rf)
 
 rf.pred <- predict(rf, newdata = test)
@@ -196,21 +195,22 @@ gbm.pred <- predict(gbm_fit, newdata = test)
 RMSE(gbm.pred, test$house_price)
 
 #try tuning gbm
-gbm2_grid <- expand.grid(n.trees = c(2000,3000,4000),
-                        interaction.depth = 1:6,
-                        shrinkage = c(0.001,0.003,0.005),
-                        n.minobsinnode = 1)
-set.seed(1)
-gbm2_fit <- train(house_price~., data = train, 
-                 tuneGrid = gbm2_grid,
-                 trControl = trctrl,
-                 method = "gbm",
-                 verbose = FALSE)
-plot(gbm2_fit)
+#gbm2_grid <- expand.grid(n.trees = c(2000,3000,4000),
+                        #interaction.depth = 1:6,
+                        #shrinkage = c(0.001,0.003,0.005),
+                        #n.minobsinnode = 1)
+#set.seed(1)
+#gbm2_fit <- train(house_price~., data = train, 
+                 #tuneGrid = gbm2_grid,
+                 #trControl = trctrl,
+                # method = "gbm",
+                 #verbose = FALSE)
+#plot(gbm2_fit)
 
-gbm2.pred <- predict(gbm2_fit, newdata = test)
-RMSE(gbm2.pred, test$house_price)
-#don't include - RMSE was higher for tuned model
+#gbm2.pred <- predict(gbm2_fit, newdata = test)
+#RMSE(gbm2.pred, test$house_price)
+
+#don't include - RMSE was higher for untuned model
 
 ```
 
